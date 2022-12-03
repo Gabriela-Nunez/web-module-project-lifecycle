@@ -13,24 +13,24 @@ export default class App extends React.Component {
   }
 
   getTodos = () => {
-    axios.get(URL)
-    .then(res => {
-      this.setState({ ...this.state, todos: res.data.data})
-    })
-    .catch(err => {
-      this.setState({ ...this.state, error:err.response.data.message})
-    })
+      axios.get(URL)
+      .then(res => {
+        this.setState({ ...this.state, todos: res.data.data})
+      })
+      .catch(err => {
+        this.setState({ ...this.state, error:err.response.data.message})
+      })
   }
 
   postNewTodo = () => {
     axios.post(URL, { name: this.state.input })
-    .then(res => {
-      this.getTodos();
-      this.setState({ ...this.state, input: ''})
-    })
-    .catch(err => {
-      this.setState({ ...this.state, error:err.response.data.message})
-    })
+      .then(res => {
+        this.getTodos();
+        this.setState({ ...this.state, input: ''})
+      })
+      .catch(err => {
+        this.setState({ ...this.state, error:err.response.data.message})
+      })
   }
 
   componentDidMount() {
@@ -47,6 +47,25 @@ export default class App extends React.Component {
     this.postNewTodo()
   }
 
+  toggleCompleted = id => () => {
+    axios.patch(`${URL}/${id}`)
+      .then(res => {
+        this.setState({ ...this.state, todos: this.state.todos.map(todo => {
+          if (todo.id !== id) return todo;
+          return res.data.data
+        })})
+      })
+      .catch(err => {
+        this.setState({ ...this.state, error:err.response.data.message})
+      })
+  }
+
+  handleClear = () => {
+    this.setState({ ...this.state, todos: this.state.todos.filter(todo => {
+      return (todo.completed === false);
+    }) })
+  }
+
   render() {
     return (
       <div>
@@ -54,15 +73,15 @@ export default class App extends React.Component {
         
           {
             this.state.todos.map(todo => {
-              return <li key={todo.id}>{todo.name}</li>
+              return <li onClick={this.toggleCompleted(todo.id)}  key={todo.id}>{todo.name} {todo.completed ? '✅' : ''}</li>
             })
           }
           <div>
             <form onSubmit={this.handleSubmit}>
               <input value={this.state.input} type='text' placeholder='Type Todo Here' onChange={this.handleChange}></input>
-              <input type='submit'></input>
-              <button>Clear Completed</button>
+              <input type='submit'></input> 
             </form>
+            <button onClick={this.handleClear}>Clear Completed</button>
           </div>
       </div>
     )
